@@ -36,7 +36,7 @@ scale_fill_discrete = scale_fill_viridis_d
 ##Problem 1: Instacart
 
 
-```{r}
+```{r import_data}
 data("instacart")
 instacart = 
   instacart |> 
@@ -47,7 +47,7 @@ This dataset contains `r nrow(instacart)` rows and `r ncol(instacart)` columns, 
 
 Below is a table summarizing the number of items ordered from aisle. In total, there are 134 aisles, with fresh vegetables and fresh fruits holding the most items ordered by far.
 
-```{r}
+```{r aisle_count}
 instacart |> 
   count(aisle) |> 
   arrange(desc(n))
@@ -55,7 +55,7 @@ instacart |>
 
 Next is a plot that shows the number of items ordered in each aisle. Here, aisles are ordered by ascending number of items.
 
-```{r}
+```{r aisle_plot}
 instacart |> 
   count(aisle) |> 
   filter(n > 10000) |> 
@@ -69,7 +69,7 @@ instacart |>
 
 Our next table shows the three most popular items in aisles `baking ingredients`, `dog food care`, and `packaged vegetables fruits`, and includes the number of times each item is ordered in your table.
 
-```{r}
+```{r aisle_rank}
 instacart |> 
   filter(aisle %in% c("baking ingredients", "dog food care", "packaged vegetables fruits")) |>
   group_by(aisle) |> 
@@ -82,15 +82,56 @@ instacart |>
 
 Finally is a table showing the mean hour of the day at which Pink Lady Apples and Coffee Ice Cream are ordered on each day of the week. This table has been formatted in an untidy manner for human readers. Pink Lady Apples are generally purchased slightly earlier in the day than Coffee Ice Cream, with the exception of day 5.
 
-```{r}
+```{r aisle_time}
 instacart |>
   filter(product_name %in% c("Pink Lady Apples", "Coffee Ice Cream")) |>
   group_by(product_name, order_dow) |>
   summarize(mean_hour = mean(order_hour_of_day)) |>
+  mutate(
+    order_dow =
+    case_match(
+      order_dow,
+      0 ~ "1",
+      1 ~ "2",
+      2 ~ "3",
+      3 ~ "4",
+      4 ~ "5",
+      5 ~ "6",
+      6 ~ "7"
+    )
+  ) |> 
   pivot_wider(
     names_from = order_dow, 
     values_from = mean_hour) |>
   knitr::kable(digits = 2)
 ```
 
+
+##Problem 2
+
+```{r}
+
+data("brfss_smart2010")
+brfss = 
+  brfss_smart2010 |> 
+  as_tibble()|> 
+  janitor::clean_names() |> 
+  rename(
+    state = locationabbr,
+    location = locationdesc,
+    resp_id = respid) |> 
+  select(year, state, location, topic, response, data_value) |> 
+  filter(topic == "Overall Health") |> 
+  mutate(
+    response = 
+      factor(response, levels = c("Poor", "Fair", "Good", "Very Good", "Excellent"), ordered = TRUE)
+  )
+
+view(brfss)
+```
+
+
+
+
+ 
 
