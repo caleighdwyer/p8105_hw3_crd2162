@@ -296,3 +296,22 @@ nhanes_activity |>
   geom_smooth(se= FALSE)
 ```
 
+Lastly we will create a plot that shows the 24-hour activity by education level and sex.
+```{r}
+nhanes_minutes =
+nhanes_combined |>
+  pivot_longer(cols = starts_with("min"),
+               names_to = "minute",
+               values_to = "activity") |> 
+  na.omit()
+  
+nhanes_minutes |> 
+  ggplot(aes(x=minute, y = activity, color = sex))+
+  geom_point(alpha = 0.5)+
+  labs(x = "Time", y = "Activity")+
+  facet_grid(.~education)+
+  geom_smooth(method = lm, se=FALSE)
+```
+
+This plot shows that across education levels, there is a significant dip in activity levels in the middle of the day. This could be due to participants working sedentary jobs during the middle of the day. Activity levels are mostly consistent between males and females across time and education levels. Notably, in the "more than high school" group, male participants had a large spike in activity in the morning, whereas female participants had a large (though not quite as large) spike in activity in the afternoon. It's unclear what could be driving the gender difference in the "more than high school" group.
+
