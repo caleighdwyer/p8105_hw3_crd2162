@@ -201,3 +201,73 @@ brfss_ny |>
   facet_grid(.~year)
 ```
 
+
+##Problem 3: Accelerometer data
+
+In the chunk below, we import the accel and covar datasets from nhanes.
+
+```{r import_nhanes}
+accel =
+  read_csv(
+    "data/nhanes_accel.csv"
+  ) |> 
+  janitor::clean_names()
+
+
+covar =
+  read_csv(
+    "data/nhanes_covar.csv",
+    skip =4) |> 
+  janitor::clean_names() |> 
+  mutate(
+    sex =
+      case_match(
+        sex,
+        1 ~ "male",
+        2 ~ "female"),
+    education =
+      case_match(
+        education,
+        1 ~ "less than high school",
+        2 ~ "high school equivalent",
+        3 ~ "more than high school"
+      )
+      ) |> 
+  mutate(
+    education = 
+      fct_relevel(education, c("less than high school", "high school equivalent", "more than high school"))
+  ) |> 
+  filter(age > 21) |> 
+  na.omit()
+```
+
+In the next chunk, we'll join the datasets.
+
+```{r join_nhanes}
+nhanes_combined =
+left_join(x = covar, y = accel)
+```
+
+The table below shows the number of men and women in each education category:
+
+```{r edu_sex_table}
+nhanes_edu_sex =
+nhanes_combined |> 
+  select(education, sex) |> 
+  group_by(education, sex) |> 
+  summarize(n = n()) 
+
+nhanes_edu_sex|>
+  knitr::kable()
+```
+
+The chunk below produces a visualization of the table above:
+
+```{r}
+nhanes_edu_sex|> 
+  ggplot(aes(x=education, y = n, fill= sex))+
+  geom_bar(stat = "identity", position = "stack")+
+  labs(x = "Education Level", y = "Count")+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
