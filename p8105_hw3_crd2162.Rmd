@@ -109,29 +109,95 @@ instacart |>
 
 ##Problem 2
 
-```{r}
+In the chunk below, we will import and clean the BRFSS dataset. BRFSS is a continuous, state-based surveillance system that collects information about modifiable risk factors for chronic diseases and other leading causes of death. 
 
+```{r clean_brfss}
 data("brfss_smart2010")
+
 brfss = 
   brfss_smart2010 |> 
   as_tibble()|> 
   janitor::clean_names() |> 
   rename(
     state = locationabbr,
-    location = locationdesc,
-    resp_id = respid) |> 
+    location = locationdesc) |> 
   select(year, state, location, topic, response, data_value) |> 
-  filter(topic == "Overall Health") |> 
+  filter(
+    topic == "Overall Health"
+    ) |> 
   mutate(
     response = 
-      factor(response, levels = c("Poor", "Fair", "Good", "Very Good", "Excellent"), ordered = TRUE)
+      factor(response, levels = c("Poor", "Fair", "Good", "Very good", "Excellent"), ordered = TRUE)
   )
-
-view(brfss)
 ```
 
+The following table shows the states with 7 or more observed locations in 2002:
 
+```{r locations_2002}
+brfss |> 
+  filter (year ==2002) |> 
+  group_by(state) |> 
+  summarize(location_count = n_distinct(location)) |>
+  filter (location_count >= 7) |>
+  arrange(desc(location_count)) |>
+  knitr::kable()
 
+```
 
+This table shows the states with 7 or more observed locations in 2010:
+
+```{r locations_2010}
+brfss |> 
+  filter (year ==2010) |> 
+  group_by(state) |> 
+  summarize(location_count = n_distinct(location)) |>
+  filter (location_count >= 7) |>
+  arrange(desc(location_count)) |>
+  knitr::kable()
+
+```
  
+
+In the following chunk, we will create a dataset limited to "Excellent" responses to the overall health question and create a new variable that calculates the mean data_value for each state by year.
+
+```{r brfss_excellent}
+brfss_excellent = 
+  brfss|> 
+  select(year, state, location, response, data_value) |> 
+  filter(response == "Excellent")
+
+
+brfss_excellent_mean =
+  brfss_excellent |> 
+  group_by(state, year) |> 
+    mutate(
+    dv_mean = mean(data_value, na.rm = TRUE)
+  ) 
+
+```
+
+In the following chunk, we will construct a "spaghetti plot" using the brfss_excellent dataset.
+
+```{r}
+brfss_excellent_mean |> 
+  ggplot(aes(x=year, y=dv_mean, group = state, color = state))+
+  geom_line()
+
+```
+
+In the next chunk, we will produce a plot showing, for the years 2006 and 2010, the distribution of data_value for responses among locations in NY State.
+
+```{r brfss_ny}
+brfss_ny =
+  brfss |> 
+  filter(
+    year == "2006" | year == "2010",
+    state == "NY"
+  ) 
+
+brfss_ny |> 
+  ggplot(aes(x=response, y=data_value, color = year))+
+  geom_point()+
+  facet_grid(.~year)
+```
 
