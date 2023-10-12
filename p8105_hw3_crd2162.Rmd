@@ -211,7 +211,8 @@ accel =
   read_csv(
     "data/nhanes_accel.csv"
   ) |> 
-  janitor::clean_names()
+  janitor::clean_names() |> 
+  na.omit()
 
 
 covar =
@@ -269,5 +270,29 @@ nhanes_edu_sex|>
   geom_bar(stat = "identity", position = "stack")+
   labs(x = "Education Level", y = "Count")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+We can see that the ratio of men to women at each level of education is mostly consistent (about 50/50) except that in the high school equivalent level, there is a slightly higher proportion of men than women. 
+
+In the chunk below we will aggregate the accelerometer data:
+
+```{r aggr_accel}
+nhanes_activity =
+nhanes_combined |> 
+  mutate(
+    total_activity = rowSums(select(nhanes_combined, min1:min999), na.rm = TRUE)
+  ) |> 
+  select(total_activity, age, sex, education) |> 
+  view()
+```
+
+Now we will create a visualization showing the total activities against age, comparing men and women and with separate panels for each education level. 
+
+```{r activity_plot}
+nhanes_activity |> 
+  ggplot(aes(x=age, y=total_activity, color = sex))+
+  geom_point()+
+  facet_grid(.~education)+
+  geom_smooth(se= FALSE)
 ```
 
