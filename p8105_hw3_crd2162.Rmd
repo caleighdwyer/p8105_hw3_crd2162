@@ -178,10 +178,11 @@ brfss_excellent_mean =
 
 In the following chunk, we will construct a "spaghetti plot" using the brfss_excellent dataset.
 
-```{r}
+```{r spaghet_plot}
 brfss_excellent_mean |> 
   ggplot(aes(x=year, y=dv_mean, group = state, color = state))+
-  geom_line()
+  geom_line()+
+  labs(title = "Mean data_value over time by state", x = "Year", y = "Mean Data_value")
 
 ```
 
@@ -196,9 +197,11 @@ brfss_ny =
   ) 
 
 brfss_ny |> 
-  ggplot(aes(x=response, y=data_value, color = year))+
+  ggplot(aes(x=response, y=data_value))+
   geom_point()+
-  facet_grid(.~year)
+  labs(title = "Comparing data_value level by response type in NY in 2006 vs. 2010", x = "Response to 'Overall Health'", y = "Data_value Level")+
+  facet_grid(.~year)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 
@@ -264,11 +267,11 @@ nhanes_edu_sex|>
 
 The chunk below produces a visualization of the table above:
 
-```{r}
+```{r sex_ratio}
 nhanes_edu_sex|> 
   ggplot(aes(x=education, y = n, fill= sex))+
   geom_bar(stat = "identity", position = "stack")+
-  labs(x = "Education Level", y = "Count")+
+  labs(title = "Ratio of men to women by education level", x = "Education Level", y = "Count")+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
@@ -293,11 +296,14 @@ nhanes_activity |>
   ggplot(aes(x=age, y=total_activity, color = sex))+
   geom_point()+
   facet_grid(.~education)+
+  labs(title = "Activity level across age by education and sex",x = "Age", y = "Total Activity Level")+
   geom_smooth(se= FALSE)
 ```
+This graph shows that, across education levels and sex, activity levels tend to decrease with age. However, the slope of the decline is greatest in the less than high school groups and smallest in the more than high school group. The less than high school group starts with the highest activity level among both sexes. It is also notable that among all education levels and sexes, there is typically a spike in activity level between ages 40 and 60 before declining in older age.
+
 
 Lastly we will create a plot that shows the 24-hour activity by education level and sex.
-```{r}
+```{r act_time}
 nhanes_minutes =
 nhanes_combined |>
   pivot_longer(cols = starts_with("min"),
@@ -307,10 +313,9 @@ nhanes_combined |>
   
 nhanes_minutes |> 
   ggplot(aes(x=minute, y = activity, color = sex))+
-  geom_point(alpha = 0.5)+
-  labs(x = "Time", y = "Activity")+
-  facet_grid(.~education)+
-  geom_smooth(method = lm, se=FALSE)
+  geom_point(alpha = 0.2, position = "jitter")+
+  labs(title = "Activity over time by education level and sex",x = "Time", y = "Activity")+
+  facet_grid(.~education)
 ```
 
 This plot shows that across education levels, there is a significant dip in activity levels in the middle of the day. This could be due to participants working sedentary jobs during the middle of the day. Activity levels are mostly consistent between males and females across time and education levels. Notably, in the "more than high school" group, male participants had a large spike in activity in the morning, whereas female participants had a large (though not quite as large) spike in activity in the afternoon. It's unclear what could be driving the gender difference in the "more than high school" group.
